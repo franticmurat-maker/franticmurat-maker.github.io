@@ -142,6 +142,22 @@ body {
 .kpi-title { color: var(--muted); font-size: .78rem; }
 .kpi-value { font-size: 1.42rem; font-weight: 800; }
 
+.terminal-chat { margin-top: 18px; padding: 14px; }
+.terminal-log {
+  background: #070a12;
+  border: 1px solid rgba(120,255,190,.25);
+  border-radius: 12px;
+  min-height: 140px;
+  max-height: 220px;
+  overflow: auto;
+  padding: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: .78rem;
+  color: #9dffbe;
+}
+.terminal-line { margin-bottom: 6px; white-space: pre-wrap; }
+.terminal-prompt { color: #6de8ff; }
+
 .bots-section { margin-top: 18px; }
 .section-head {
   display: flex;

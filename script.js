@@ -42,7 +42,8 @@ const el = {
   error: document.getElementById('errorKpi'),
   refresh: document.getElementById('refreshBtn'),
   arena: document.getElementById('stageArena'),
-  stageSub: document.getElementById('stageSub')
+  stageSub: document.getElementById('stageSub'),
+  terminal: document.getElementById('terminalLog')
 };
 
 function cardTemplate(bot) {
@@ -194,14 +195,35 @@ function setupMiniBots() {
   }, 1300);
 }
 
+function terminalPush(text) {
+  if (!el.terminal) return;
+  const line = document.createElement('div');
+  line.className = 'terminal-line';
+  line.innerHTML = `<span class="terminal-prompt">$</span> ${text}`;
+  el.terminal.appendChild(line);
+  while (el.terminal.children.length > 24) el.terminal.removeChild(el.terminal.firstChild);
+  el.terminal.scrollTop = el.terminal.scrollHeight;
+}
+
+function startTerminalFeed() {
+  terminalPush('chat servisi başlatıldı');
+  setInterval(() => {
+    const b = bots[Math.floor(Math.random() * bots.length)];
+    const st = statusMap[b.status].text;
+    terminalPush(`${b.name}: ${st} | ${Math.round(b.progress)}% | ${taskPool[Math.floor(Math.random() * taskPool.length)]}`);
+  }, 1600);
+}
+
 el.refresh.addEventListener('click', () => {
   animateData();
+  terminalPush('manuel yenileme tetiklendi');
   el.refresh.textContent = 'Yenilendi ✓';
   setTimeout(() => (el.refresh.textContent = 'Yenile'), 1200);
 });
 
 render();
 setupMiniBots();
+startTerminalFeed();
 tickClock();
 setInterval(tickClock, 1000);
 setInterval(animateData, 3500);
