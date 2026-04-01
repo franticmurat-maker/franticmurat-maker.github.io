@@ -28,6 +28,7 @@ const el = {
 };
 
 let roamActors = [];
+const MIN_VISUAL_BOTS = 6;
 
 function cardTemplate(bot) {
   const st = statusMap[bot.status] || statusMap.idle;
@@ -104,21 +105,28 @@ function pickTargetByTask(task, anchors) {
 }
 
 function syncRoamBots() {
+  const visualBots = [];
+  const count = Math.max(MIN_VISUAL_BOTS, bots.length);
+  for (let i = 0; i < count; i++) {
+    const base = bots[i % Math.max(1, bots.length)] || { id: 'main', name: 'Main', status: 'idle', task: 'beklemede' };
+    visualBots.push({ ...base, visualId: `${base.id}-${i}` });
+  }
+
   const existing = new Map(roamActors.map(a => [a.botId, a]));
   const next = [];
 
-  for (let i = 0; i < bots.length; i++) {
-    const b = bots[i];
-    let actor = existing.get(b.id);
+  for (let i = 0; i < visualBots.length; i++) {
+    const b = visualBots[i];
+    let actor = existing.get(b.visualId);
     if (!actor) {
       const n = document.createElement('div');
       n.className = `roam-bot ${b.status || 'idle'}`;
-      n.textContent = String(i + 1);
+      n.textContent = '🤖';
       n.dataset.task = b.task || 'beklemede';
       el.roam.appendChild(n);
 
       actor = {
-        botId: b.id,
+        botId: b.visualId,
         node: n,
         x: 50 + Math.random() * (window.innerWidth - 100),
         y: 80 + Math.random() * (window.innerHeight - 160),

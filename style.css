@@ -175,32 +175,31 @@ body {
 }
 .roam-bot {
   position: absolute;
-  width: 34px;
-  height: 34px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
-  border: 1px solid rgba(255,255,255,.36);
+  border: 1px solid rgba(255,255,255,.45);
   background: linear-gradient(140deg, var(--brand), var(--brand-2));
-  box-shadow: 0 8px 20px rgba(0,0,0,.28), 0 0 16px rgba(95,209,255,.28);
+  box-shadow: 0 10px 24px rgba(0,0,0,.32), 0 0 22px rgba(95,209,255,.34);
   display: grid;
   place-items: center;
   color: #fff;
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 22px;
   transform: translate(-50%, -50%);
 }
 .roam-bot::after {
   content: attr(data-task);
   position: absolute;
-  top: -28px;
+  top: -32px;
   left: 50%;
   transform: translateX(-50%);
   white-space: nowrap;
-  font-size: .67rem;
+  font-size: .72rem;
   color: #fff;
-  background: rgba(6,8,15,.8);
-  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(6,8,15,.84);
+  border: 1px solid rgba(255,255,255,.25);
   border-radius: 999px;
-  padding: 3px 7px;
+  padding: 4px 8px;
 }
 .roam-bot.running { box-shadow: 0 8px 22px rgba(0,0,0,.3), 0 0 18px rgba(79,240,176,.35); }
 .roam-bot.idle { opacity: .88; }
