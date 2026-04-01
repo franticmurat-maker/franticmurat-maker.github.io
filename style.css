@@ -1,13 +1,13 @@
 :root {
-  --bg: #070b16;
-  --panel: rgba(20, 28, 46, 0.72);
-  --panel-solid: #111a2d;
-  --text: #eaf1ff;
-  --muted: #9cb0d7;
-  --line: rgba(140, 170, 240, 0.2);
-  --brand: #6ea8ff;
-  --brand-2: #7ef3ff;
-  --ok: #43e7a3;
+  --bg: #12061f;
+  --panel: rgba(36, 18, 56, 0.72);
+  --panel-solid: #241238;
+  --text: #fff1ff;
+  --muted: #d5b8e7;
+  --line: rgba(255, 124, 193, 0.24);
+  --brand: #ff4fa3;
+  --brand-2: #ff9f43;
+  --ok: #7dffb2;
   --warn: #ffd166;
   --err: #ff6b8a;
 }
@@ -16,8 +16,9 @@
 html, body { margin: 0; padding: 0; }
 body {
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  background: radial-gradient(1000px 600px at 10% -10%, rgba(110,168,255,.2), transparent 65%),
-              radial-gradient(900px 600px at 100% 0%, rgba(126,243,255,.14), transparent 60%),
+  background: radial-gradient(1000px 600px at 8% -8%, rgba(255,79,163,.26), transparent 65%),
+              radial-gradient(900px 600px at 100% 0%, rgba(255,159,67,.22), transparent 60%),
+              radial-gradient(900px 500px at 50% 120%, rgba(137,66,255,.18), transparent 60%),
               var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -39,8 +40,8 @@ body {
   position: fixed; border-radius: 999px; filter: blur(50px); pointer-events: none; z-index: -2;
   animation: drift 14s ease-in-out infinite;
 }
-.orb-1 { width: 220px; height: 220px; left: -40px; top: 80px; background: rgba(110,168,255,.35); }
-.orb-2 { width: 280px; height: 280px; right: -70px; top: 260px; background: rgba(126,243,255,.22); animation-delay: -7s; }
+.orb-1 { width: 220px; height: 220px; left: -40px; top: 80px; background: rgba(255,79,163,.35); }
+.orb-2 { width: 280px; height: 280px; right: -70px; top: 260px; background: rgba(255,159,67,.26); animation-delay: -7s; }
 @keyframes drift { 50% { transform: translateY(-18px) translateX(14px) scale(1.08); } }
 
 .glass {
@@ -55,7 +56,7 @@ body {
   position: sticky; top: 0; z-index: 20;
   margin-top: 18px;
   padding: 14px 16px;
-  background: rgba(10, 15, 28, 0.7);
+  background: rgba(24, 10, 36, 0.72);
   border: 1px solid var(--line);
   border-radius: 16px;
   display: flex; justify-content: space-between; align-items: center; gap: 12px;
@@ -66,7 +67,7 @@ body {
 .brand-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 0 rgba(67,231,163,.65); }
 .pulse { animation: pulse 2.2s infinite; }
 @keyframes pulse { 70% { box-shadow: 0 0 0 12px rgba(67,231,163,0); } 100% { box-shadow: 0 0 0 0 rgba(67,231,163,0); } }
-.badge { font-size: .72rem; color: #cde3ff; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; }
+.badge { font-size: .72rem; color: #ffe4f3; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,79,163,.12); }
 .top-stats { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 .chip {
   font-size: .82rem; color: var(--muted);
@@ -156,7 +157,7 @@ body {
   transition: width .65s ease;
 }
 
-.footer { color: #93a8cf; font-size: .85rem; padding: 20px 0 26px; text-align: center; }
+.footer { color: #d8bfdc; font-size: .85rem; padding: 20px 0 26px; text-align: center; }
 
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; }
