@@ -175,38 +175,35 @@ body {
 }
 .roam-bot {
   position: absolute;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  border: 1px solid rgba(255,255,255,.45);
-  background: linear-gradient(140deg, var(--brand), var(--brand-2));
-  box-shadow: 0 10px 24px rgba(0,0,0,.32), 0 0 22px rgba(95,209,255,.34);
+  width: 50px;
+  height: 50px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.46);
+  background: linear-gradient(145deg, rgba(139,123,255,.95), rgba(95,209,255,.95));
+  box-shadow: 0 12px 28px rgba(0,0,0,.34), 0 0 20px rgba(95,209,255,.35);
   display: grid;
   place-items: center;
   transform: translate(-50%, -50%);
 }
 .roam-bot::before {
-  content: "";
-  width: 18px;
-  height: 14px;
-  border-radius: 5px;
-  background: rgba(255,255,255,.95);
-  box-shadow: 0 -7px 0 -5px rgba(255,255,255,.8);
-  position: relative;
+  content: "◉";
+  font-size: 18px;
+  color: rgba(255,255,255,.95);
+  text-shadow: 0 0 10px rgba(255,255,255,.45);
 }
 .roam-bot::after {
   content: attr(data-task);
   position: absolute;
-  top: -32px;
+  top: -34px;
   left: 50%;
   transform: translateX(-50%);
   white-space: nowrap;
   font-size: .72rem;
   color: #fff;
-  background: rgba(6,8,15,.84);
-  border: 1px solid rgba(255,255,255,.25);
+  background: rgba(6,8,15,.88);
+  border: 1px solid rgba(255,255,255,.3);
   border-radius: 999px;
-  padding: 4px 8px;
+  padding: 4px 9px;
 }
 .roam-bot.running { box-shadow: 0 8px 22px rgba(0,0,0,.3), 0 0 18px rgba(79,240,176,.35); }
 .roam-bot.idle { opacity: .88; }
