@@ -1,4 +1,4 @@
-const LIVE_API = localStorage.getItem('MURATTIY_API') || '';
+const LIVE_API = localStorage.getItem('MURATTIY_API') || 'https://murattiy-live-api.murattiylive.workers.dev';
 
 const bots = [
   { id: 'b1', name: 'Research Bot', desc: 'Web kaynaklarını tarar ve özet üretir.', status: 'running', progress: 72, task: 'ana sayfayı tarıyor' },
