@@ -1,48 +1,82 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>murattiy</title>
-    <meta name="description" content="murattiy - OpenClaw bot panosu: bot durumları, animasyonlu çalışma görünümü ve mobil/masaüstü uyumlu canlı dashboard.">
-    <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://franticmurat-maker.github.io/">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>murattiy</title>
+  <meta name="description" content="murattiy - OpenClaw bot panosu: modern, şık, animasyonlu ve responsive kontrol paneli." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://franticmurat-maker.github.io/" />
 
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="murattiy">
-    <meta property="og:description" content="OpenClaw botlarını tek ekranda takip et.">
-    <meta property="og:url" content="https://franticmurat-maker.github.io/">
-    <meta property="og:site_name" content="MuratTIY">
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="murattiy" />
+  <meta property="og:description" content="Modern OpenClaw bot dashboard" />
+  <meta property="og:url" content="https://franticmurat-maker.github.io/" />
+  <meta property="og:site_name" content="murattiy" />
 
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="murattiy">
-    <meta name="twitter:description" content="OpenClaw botlarını tek ekranda takip et.">
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="murattiy" />
+  <meta name="twitter:description" content="Modern OpenClaw bot dashboard" />
 
-    <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>murattiy <span class="emoji">🐾</span></h1>
-            <p>Botlarınızın canlı durumunu ve animasyonlarını görün.</p>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-grid"></div>
+
+  <header class="topbar container">
+    <div class="brand-wrap">
+      <div class="brand-dot pulse"></div>
+      <h1>murattiy</h1>
+      <span class="badge">Live Control</span>
+    </div>
+    <div class="top-stats">
+      <div class="chip"><span id="activeCount">0</span> aktif</div>
+      <div class="chip"><span id="totalCount">0</span> toplam</div>
+      <div class="chip clock" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero glass">
+      <div>
+        <p class="eyebrow">OpenClaw Dashboard</p>
+        <h2>Profesyonel, sade ve animasyonlu bot takip ekranı</h2>
+        <p class="sub">Bot durumlarını gerçek zamanlı hissiyle izle. Mobil ve masaüstünde hızlı, temiz ve modern görünüm.</p>
+      </div>
+      <div class="hero-indicators">
+        <div class="kpi">
+          <span class="kpi-title">Running</span>
+          <span class="kpi-value" id="runningKpi">0</span>
         </div>
-    </header>
-
-    <main class="container">
-        <section id="bot-list">
-            <h2>Aktif Botlar</h2>
-            <div class="bot-grid">
-                <!-- Botlar buraya JS ile eklenecek -->
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <div class="container">
-            <p>&copy; 2026 OpenClaw. Tüm hakları saklıdır.</p>
+        <div class="kpi">
+          <span class="kpi-title">Idle</span>
+          <span class="kpi-value" id="idleKpi">0</span>
         </div>
-    </footer>
+        <div class="kpi">
+          <span class="kpi-title">Errors</span>
+          <span class="kpi-value" id="errorKpi">0</span>
+        </div>
+      </div>
+    </section>
 
-    <script src="script.js"></script>
+    <section class="bots-section">
+      <div class="section-head">
+        <h3>Botlar</h3>
+        <button id="refreshBtn" class="refresh-btn">Yenile</button>
+      </div>
+      <div id="botGrid" class="bot-grid"></div>
+    </section>
+  </main>
+
+  <footer class="container footer">
+    <p>© 2026 murattiy • OpenClaw Bot Dashboard</p>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>
