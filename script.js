@@ -1,10 +1,12 @@
+const LIVE_API = localStorage.getItem('MURATTIY_API') || '';
+
 const bots = [
-  { id: 'b1', name: 'Research Bot', desc: 'Web kaynaklarını tarar ve özet üretir.', status: 'running', progress: 72 },
-  { id: 'b2', name: 'Planner Bot', desc: 'Görev planı çıkarır ve sıraya alır.', status: 'idle', progress: 35 },
-  { id: 'b3', name: 'Monitor Bot', desc: 'Sistem durumunu anlık takip eder.', status: 'running', progress: 88 },
-  { id: 'b4', name: 'Publisher Bot', desc: 'İçerikleri yayına hazırlar.', status: 'error', progress: 20 },
-  { id: 'b5', name: 'Memory Bot', desc: 'Önemli notları indeksler.', status: 'running', progress: 61 },
-  { id: 'b6', name: 'Notify Bot', desc: 'Bildirimleri ve uyarıları yönetir.', status: 'idle', progress: 43 }
+  { id: 'b1', name: 'Research Bot', desc: 'Web kaynaklarını tarar ve özet üretir.', status: 'running', progress: 72, task: 'ana sayfayı tarıyor' },
+  { id: 'b2', name: 'Planner Bot', desc: 'Görev planı çıkarır ve sıraya alır.', status: 'idle', progress: 35, task: 'ayarları kontrol ediyor' },
+  { id: 'b3', name: 'Monitor Bot', desc: 'Sistem durumunu anlık takip eder.', status: 'running', progress: 88, task: 'log analizi yapıyor' },
+  { id: 'b4', name: 'Publisher Bot', desc: 'İçerikleri yayına hazırlar.', status: 'error', progress: 20, task: 'hata düzeltiyor' },
+  { id: 'b5', name: 'Memory Bot', desc: 'Önemli notları indeksler.', status: 'running', progress: 61, task: 'veri topluyor' },
+  { id: 'b6', name: 'Notify Bot', desc: 'Bildirimleri ve uyarıları yönetir.', status: 'idle', progress: 43, task: 'rapor sayfasına geçti' }
 ];
 
 const statusMap = {
@@ -14,13 +16,8 @@ const statusMap = {
 };
 
 const taskPool = [
-  'ana sayfayı tarıyor',
-  'ürünleri geziyor',
-  'rapor sayfasına geçti',
-  'ayarları kontrol ediyor',
-  'veri topluyor',
-  'log analizi yapıyor',
-  'hata düzeltiyor'
+  'ana sayfayı tarıyor', 'ürünleri geziyor', 'rapor sayfasına geçti',
+  'ayarları kontrol ediyor', 'veri topluyor', 'log analizi yapıyor', 'hata düzeltiyor'
 ];
 
 const mapNodes = [
@@ -62,11 +59,9 @@ function cardTemplate(bot) {
 
 function render() {
   el.grid.innerHTML = bots.map(cardTemplate).join('');
-
   const running = bots.filter(b => b.status === 'running').length;
   const idle = bots.filter(b => b.status === 'idle').length;
   const error = bots.filter(b => b.status === 'error').length;
-
   el.total.textContent = bots.length;
   el.active.textContent = running;
   el.running.textContent = running;
@@ -74,8 +69,30 @@ function render() {
   el.error.textContent = error;
 }
 
-function tickClock() {
-  el.clock.textContent = new Date().toLocaleTimeString('tr-TR', { hour12: false });
+function tickClock() { el.clock.textContent = new Date().toLocaleTimeString('tr-TR', { hour12: false }); }
+
+function terminalPush(text) {
+  if (!el.terminal) return;
+  const line = document.createElement('div');
+  line.className = 'terminal-line';
+  line.innerHTML = `<span class="terminal-prompt">$</span> ${text}`;
+  el.terminal.appendChild(line);
+  while (el.terminal.children.length > 24) el.terminal.removeChild(el.terminal.firstChild);
+  el.terminal.scrollTop = el.terminal.scrollHeight;
+}
+
+function applyLiveState(payload) {
+  if (!payload?.bots || !Array.isArray(payload.bots)) return;
+  bots.splice(0, bots.length, ...payload.bots.map((b, i) => ({
+    id: b.id || `bot-${i}`,
+    name: b.name || `Bot ${i + 1}`,
+    desc: b.task || 'canlı görev',
+    status: ['running', 'idle', 'error'].includes(b.status) ? b.status : 'idle',
+    progress: Number.isFinite(Number(b.progress)) ? Number(b.progress) : 0,
+    task: b.task || 'çalışıyor'
+  })));
+  render();
+  terminalPush(`live update alındı (${new Date().toLocaleTimeString('tr-TR')})`);
 }
 
 function animateData() {
@@ -83,28 +100,17 @@ function animateData() {
     if (b.status === 'running') b.progress = Math.min(100, b.progress + Math.floor(Math.random() * 8));
     if (b.status === 'idle') b.progress = Math.max(5, b.progress - Math.floor(Math.random() * 3));
     if (b.status === 'error') b.progress = Math.max(0, b.progress - Math.floor(Math.random() * 2));
-
-    if (b.progress >= 100 && b.status === 'running') {
-      b.status = 'idle';
-      b.progress = 45;
-    }
+    if (b.progress >= 100 && b.status === 'running') { b.status = 'idle'; b.progress = 45; }
   }
-
   if (Math.random() > 0.82) {
-    const randomBot = bots[Math.floor(Math.random() * bots.length)];
-    const states = ['running', 'idle', 'error'];
-    randomBot.status = states[Math.floor(Math.random() * states.length)];
+    const r = bots[Math.floor(Math.random() * bots.length)];
+    r.status = ['running', 'idle', 'error'][Math.floor(Math.random() * 3)];
+    r.task = taskPool[Math.floor(Math.random() * taskPool.length)];
   }
-
   render();
 }
 
-function toPixel(arena, point) {
-  return {
-    x: (point.x / 100) * arena.clientWidth,
-    y: (point.y / 100) * arena.clientHeight
-  };
-}
+function toPixel(arena, point) { return { x: (point.x / 100) * arena.clientWidth, y: (point.y / 100) * arena.clientHeight }; }
 
 function setupMapNodes() {
   mapNodes.forEach((p) => {
@@ -119,74 +125,43 @@ function setupMapNodes() {
 
 function setupMiniBots() {
   setupMapNodes();
-
   const mini = bots.map((b, i) => {
     const nodeEl = document.createElement('div');
     nodeEl.className = 'mini-bot';
     nodeEl.textContent = i + 1;
-    nodeEl.dataset.task = taskPool[Math.floor(Math.random() * taskPool.length)];
+    nodeEl.dataset.task = b.task || taskPool[Math.floor(Math.random() * taskPool.length)];
     el.arena.appendChild(nodeEl);
-
     const from = mapNodes[i % mapNodes.length];
     const to = mapNodes[(i + 2) % mapNodes.length];
     const start = toPixel(el.arena, from);
     const end = toPixel(el.arena, to);
-
-    return {
-      bot: b,
-      node: nodeEl,
-      from,
-      to,
-      x: start.x,
-      y: start.y,
-      tx: end.x,
-      ty: end.y,
-      speed: 0.014 + Math.random() * 0.01,
-      progress: Math.random() * 0.6,
-      pathTick: 0
-    };
+    return { bot: b, node: nodeEl, from, to, x: start.x, y: start.y, tx: end.x, ty: end.y, speed: 0.014 + Math.random() * 0.01, progress: Math.random() * 0.6, pathTick: 0 };
   });
 
-  function pickNextTarget(current) {
+  function pickNextTarget(m) {
     let next = mapNodes[Math.floor(Math.random() * mapNodes.length)];
-    while (next === current.to) next = mapNodes[Math.floor(Math.random() * mapNodes.length)];
-    current.from = current.to;
-    current.to = next;
-    const fromPx = toPixel(el.arena, current.from);
-    const toPx = toPixel(el.arena, current.to);
-    current.x = fromPx.x;
-    current.y = fromPx.y;
-    current.tx = toPx.x;
-    current.ty = toPx.y;
-    current.progress = 0;
-    current.node.dataset.task = `${next.name} → ${taskPool[Math.floor(Math.random() * taskPool.length)]}`;
-    current.node.classList.add('hop');
-    setTimeout(() => current.node.classList.remove('hop'), 320);
+    while (next === m.to) next = mapNodes[Math.floor(Math.random() * mapNodes.length)];
+    m.from = m.to; m.to = next;
+    const fromPx = toPixel(el.arena, m.from);
+    const toPx = toPixel(el.arena, m.to);
+    m.x = fromPx.x; m.y = fromPx.y; m.tx = toPx.x; m.ty = toPx.y; m.progress = 0;
+    m.node.dataset.task = `${next.name} → ${(m.bot.task || taskPool[Math.floor(Math.random() * taskPool.length)])}`;
+    m.node.classList.add('hop'); setTimeout(() => m.node.classList.remove('hop'), 320);
   }
 
   function frame() {
     for (const m of mini) {
       m.progress += m.speed;
-      if (m.progress >= 1) {
-        pickNextTarget(m);
-      }
-
+      if (m.progress >= 1) pickNextTarget(m);
       m.x = m.x + (m.tx - m.x) * 0.045;
       m.y = m.y + (m.ty - m.y) * 0.045;
-
       m.pathTick++;
-      if (m.pathTick > 200) {
-        m.pathTick = 0;
-        m.node.dataset.task = `${m.to.name} → ${taskPool[Math.floor(Math.random() * taskPool.length)]}`;
-      }
-
+      if (m.pathTick > 200) { m.pathTick = 0; m.node.dataset.task = `${m.to.name} → ${(m.bot.task || taskPool[Math.floor(Math.random() * taskPool.length)])}`; }
       m.node.style.left = `${m.x}px`;
       m.node.style.top = `${m.y}px`;
     }
-
     requestAnimationFrame(frame);
   }
-
   requestAnimationFrame(frame);
 
   setInterval(() => {
@@ -195,23 +170,30 @@ function setupMiniBots() {
   }, 1300);
 }
 
-function terminalPush(text) {
-  if (!el.terminal) return;
-  const line = document.createElement('div');
-  line.className = 'terminal-line';
-  line.innerHTML = `<span class="terminal-prompt">$</span> ${text}`;
-  el.terminal.appendChild(line);
-  while (el.terminal.children.length > 24) el.terminal.removeChild(el.terminal.firstChild);
-  el.terminal.scrollTop = el.terminal.scrollHeight;
+async function startLiveMode() {
+  try {
+    terminalPush(`live api bağlanıyor: ${LIVE_API}`);
+    const r = await fetch(`${LIVE_API}/state`, { cache: 'no-store' });
+    const s = await r.json();
+    applyLiveState(s);
+
+    const es = new EventSource(`${LIVE_API}/events`);
+    es.addEventListener('snapshot', (e) => applyLiveState(JSON.parse(e.data)));
+    es.addEventListener('update', (e) => applyLiveState(JSON.parse(e.data)));
+    es.addEventListener('error', () => terminalPush('live bağlantıda kesinti')); 
+  } catch {
+    terminalPush('live api erişilemedi, demo moda geçildi');
+    startDemoMode();
+  }
 }
 
-function startTerminalFeed() {
-  terminalPush('chat servisi başlatıldı');
+function startDemoMode() {
+  terminalPush('demo chat servisi başlatıldı');
   setInterval(() => {
     const b = bots[Math.floor(Math.random() * bots.length)];
-    const st = statusMap[b.status].text;
-    terminalPush(`${b.name}: ${st} | ${Math.round(b.progress)}% | ${taskPool[Math.floor(Math.random() * taskPool.length)]}`);
+    terminalPush(`${b.name}: ${statusMap[b.status].text} | ${Math.round(b.progress)}% | ${b.task || taskPool[Math.floor(Math.random() * taskPool.length)]}`);
   }, 1600);
+  setInterval(animateData, 3500);
 }
 
 el.refresh.addEventListener('click', () => {
@@ -223,7 +205,6 @@ el.refresh.addEventListener('click', () => {
 
 render();
 setupMiniBots();
-startTerminalFeed();
 tickClock();
 setInterval(tickClock, 1000);
-setInterval(animateData, 3500);
+if (LIVE_API) startLiveMode(); else startDemoMode();
