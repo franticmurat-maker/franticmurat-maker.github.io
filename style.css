@@ -183,9 +183,16 @@ body {
   box-shadow: 0 10px 24px rgba(0,0,0,.32), 0 0 22px rgba(95,209,255,.34);
   display: grid;
   place-items: center;
-  color: #fff;
-  font-size: 22px;
   transform: translate(-50%, -50%);
+}
+.roam-bot::before {
+  content: "";
+  width: 18px;
+  height: 14px;
+  border-radius: 5px;
+  background: rgba(255,255,255,.95);
+  box-shadow: 0 -7px 0 -5px rgba(255,255,255,.8);
+  position: relative;
 }
 .roam-bot::after {
   content: attr(data-task);

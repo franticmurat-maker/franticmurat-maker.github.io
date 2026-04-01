@@ -121,7 +121,7 @@ function syncRoamBots() {
     if (!actor) {
       const n = document.createElement('div');
       n.className = `roam-bot ${b.status || 'idle'}`;
-      n.textContent = '🤖';
+      n.textContent = '';
       n.dataset.task = b.task || 'beklemede';
       el.roam.appendChild(n);
 
