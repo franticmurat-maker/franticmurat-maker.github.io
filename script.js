@@ -13,6 +13,10 @@ const statusMap = {
   error: { text: 'ERROR', cls: 'error' }
 };
 
+const taskPool = [
+  'webde geziyor', 'sayfa analiz', 'veri topluyor', 'içerik yazıyor', 'hata kontrol', 'rapor hazırlıyor', 'takip yapıyor'
+];
+
 const el = {
   grid: document.getElementById('botGrid'),
   total: document.getElementById('totalCount'),
@@ -21,7 +25,9 @@ const el = {
   running: document.getElementById('runningKpi'),
   idle: document.getElementById('idleKpi'),
   error: document.getElementById('errorKpi'),
-  refresh: document.getElementById('refreshBtn')
+  refresh: document.getElementById('refreshBtn'),
+  arena: document.getElementById('stageArena'),
+  stageSub: document.getElementById('stageSub')
 };
 
 function cardTemplate(bot) {
@@ -78,6 +84,62 @@ function animateData() {
   render();
 }
 
+function rand(min, max) { return Math.random() * (max - min) + min; }
+
+function setupMiniBots() {
+  const w = el.arena.clientWidth;
+  const h = el.arena.clientHeight;
+
+  const mini = bots.map((b, i) => {
+    const node = document.createElement('div');
+    node.className = 'mini-bot';
+    node.textContent = (i + 1);
+    node.dataset.task = taskPool[Math.floor(Math.random() * taskPool.length)];
+    el.arena.appendChild(node);
+
+    return {
+      bot: b,
+      node,
+      x: rand(40, w - 40),
+      y: rand(40, h - 40),
+      vx: rand(0.35, 0.95) * (Math.random() > 0.5 ? 1 : -1),
+      vy: rand(0.35, 0.95) * (Math.random() > 0.5 ? 1 : -1),
+      taskTick: 0
+    };
+  });
+
+  function frame() {
+    const W = el.arena.clientWidth;
+    const H = el.arena.clientHeight;
+
+    for (const m of mini) {
+      m.x += m.vx;
+      m.y += m.vy;
+
+      if (m.x < 18 || m.x > W - 18) m.vx *= -1;
+      if (m.y < 18 || m.y > H - 18) m.vy *= -1;
+
+      m.taskTick++;
+      if (m.taskTick > 180) {
+        m.taskTick = 0;
+        m.node.dataset.task = taskPool[Math.floor(Math.random() * taskPool.length)];
+      }
+
+      m.node.style.left = m.x + 'px';
+      m.node.style.top = m.y + 'px';
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+
+  setInterval(() => {
+    const actor = mini[Math.floor(Math.random() * mini.length)];
+    el.stageSub.textContent = `${actor.bot.name} şu an ${actor.node.dataset.task}.`;
+  }, 1800);
+}
+
 el.refresh.addEventListener('click', () => {
   animateData();
   el.refresh.textContent = 'Yenilendi ✓';
@@ -85,6 +147,7 @@ el.refresh.addEventListener('click', () => {
 });
 
 render();
+setupMiniBots();
 tickClock();
 setInterval(tickClock, 1000);
 setInterval(animateData, 3500);
