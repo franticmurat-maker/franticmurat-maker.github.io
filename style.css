@@ -159,11 +159,22 @@ body {
 .stage-sub { color: var(--muted); font-size: .82rem; margin-bottom: 10px; }
 .stage-arena {
   position: relative;
-  height: 220px;
+  height: 240px;
   border-radius: 14px;
   border: 1px dashed rgba(255,255,255,.2);
   background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
   overflow: hidden;
+}
+.map-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: .68rem;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(11,14,24,.6);
+  color: #e9eeff;
+  backdrop-filter: blur(6px);
 }
 .mini-bot {
   position: absolute;
@@ -179,7 +190,9 @@ body {
   font-size: 14px;
   font-weight: 700;
   transform: translate(-50%, -50%);
+  transition: transform .25s ease;
 }
+.mini-bot.hop { transform: translate(-50%, -50%) scale(1.12); }
 .mini-bot::after {
   content: attr(data-task);
   position: absolute;
@@ -187,9 +200,9 @@ body {
   left: 50%;
   transform: translateX(-50%);
   white-space: nowrap;
-  font-size: .7rem;
+  font-size: .68rem;
   color: #fff;
-  background: rgba(6,8,15,.75);
+  background: rgba(6,8,15,.78);
   border: 1px solid rgba(255,255,255,.2);
   border-radius: 999px;
   padding: 3px 7px;

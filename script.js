@@ -14,7 +14,22 @@ const statusMap = {
 };
 
 const taskPool = [
-  'webde geziyor', 'sayfa analiz', 'veri topluyor', 'içerik yazıyor', 'hata kontrol', 'rapor hazırlıyor', 'takip yapıyor'
+  'ana sayfayı tarıyor',
+  'ürünleri geziyor',
+  'rapor sayfasına geçti',
+  'ayarları kontrol ediyor',
+  'veri topluyor',
+  'log analizi yapıyor',
+  'hata düzeltiyor'
+];
+
+const mapNodes = [
+  { name: 'Ana Sayfa', x: 14, y: 20 },
+  { name: 'Ürünler', x: 40, y: 36 },
+  { name: 'Raporlar', x: 68, y: 24 },
+  { name: 'Ayarlar', x: 84, y: 54 },
+  { name: 'Bildirim', x: 58, y: 74 },
+  { name: 'Profil', x: 24, y: 70 }
 ];
 
 const el = {
@@ -59,8 +74,7 @@ function render() {
 }
 
 function tickClock() {
-  const now = new Date();
-  el.clock.textContent = now.toLocaleTimeString('tr-TR', { hour12: false });
+  el.clock.textContent = new Date().toLocaleTimeString('tr-TR', { hour12: false });
 }
 
 function animateData() {
@@ -84,49 +98,89 @@ function animateData() {
   render();
 }
 
-function rand(min, max) { return Math.random() * (max - min) + min; }
+function toPixel(arena, point) {
+  return {
+    x: (point.x / 100) * arena.clientWidth,
+    y: (point.y / 100) * arena.clientHeight
+  };
+}
+
+function setupMapNodes() {
+  mapNodes.forEach((p) => {
+    const n = document.createElement('div');
+    n.className = 'map-node';
+    n.style.left = `${p.x}%`;
+    n.style.top = `${p.y}%`;
+    n.textContent = p.name;
+    el.arena.appendChild(n);
+  });
+}
 
 function setupMiniBots() {
-  const w = el.arena.clientWidth;
-  const h = el.arena.clientHeight;
+  setupMapNodes();
 
   const mini = bots.map((b, i) => {
-    const node = document.createElement('div');
-    node.className = 'mini-bot';
-    node.textContent = (i + 1);
-    node.dataset.task = taskPool[Math.floor(Math.random() * taskPool.length)];
-    el.arena.appendChild(node);
+    const nodeEl = document.createElement('div');
+    nodeEl.className = 'mini-bot';
+    nodeEl.textContent = i + 1;
+    nodeEl.dataset.task = taskPool[Math.floor(Math.random() * taskPool.length)];
+    el.arena.appendChild(nodeEl);
+
+    const from = mapNodes[i % mapNodes.length];
+    const to = mapNodes[(i + 2) % mapNodes.length];
+    const start = toPixel(el.arena, from);
+    const end = toPixel(el.arena, to);
 
     return {
       bot: b,
-      node,
-      x: rand(40, w - 40),
-      y: rand(40, h - 40),
-      vx: rand(0.35, 0.95) * (Math.random() > 0.5 ? 1 : -1),
-      vy: rand(0.35, 0.95) * (Math.random() > 0.5 ? 1 : -1),
-      taskTick: 0
+      node: nodeEl,
+      from,
+      to,
+      x: start.x,
+      y: start.y,
+      tx: end.x,
+      ty: end.y,
+      speed: 0.014 + Math.random() * 0.01,
+      progress: Math.random() * 0.6,
+      pathTick: 0
     };
   });
 
+  function pickNextTarget(current) {
+    let next = mapNodes[Math.floor(Math.random() * mapNodes.length)];
+    while (next === current.to) next = mapNodes[Math.floor(Math.random() * mapNodes.length)];
+    current.from = current.to;
+    current.to = next;
+    const fromPx = toPixel(el.arena, current.from);
+    const toPx = toPixel(el.arena, current.to);
+    current.x = fromPx.x;
+    current.y = fromPx.y;
+    current.tx = toPx.x;
+    current.ty = toPx.y;
+    current.progress = 0;
+    current.node.dataset.task = `${next.name} → ${taskPool[Math.floor(Math.random() * taskPool.length)]}`;
+    current.node.classList.add('hop');
+    setTimeout(() => current.node.classList.remove('hop'), 320);
+  }
+
   function frame() {
-    const W = el.arena.clientWidth;
-    const H = el.arena.clientHeight;
-
     for (const m of mini) {
-      m.x += m.vx;
-      m.y += m.vy;
-
-      if (m.x < 18 || m.x > W - 18) m.vx *= -1;
-      if (m.y < 18 || m.y > H - 18) m.vy *= -1;
-
-      m.taskTick++;
-      if (m.taskTick > 180) {
-        m.taskTick = 0;
-        m.node.dataset.task = taskPool[Math.floor(Math.random() * taskPool.length)];
+      m.progress += m.speed;
+      if (m.progress >= 1) {
+        pickNextTarget(m);
       }
 
-      m.node.style.left = m.x + 'px';
-      m.node.style.top = m.y + 'px';
+      m.x = m.x + (m.tx - m.x) * 0.045;
+      m.y = m.y + (m.ty - m.y) * 0.045;
+
+      m.pathTick++;
+      if (m.pathTick > 200) {
+        m.pathTick = 0;
+        m.node.dataset.task = `${m.to.name} → ${taskPool[Math.floor(Math.random() * taskPool.length)]}`;
+      }
+
+      m.node.style.left = `${m.x}px`;
+      m.node.style.top = `${m.y}px`;
     }
 
     requestAnimationFrame(frame);
@@ -136,8 +190,8 @@ function setupMiniBots() {
 
   setInterval(() => {
     const actor = mini[Math.floor(Math.random() * mini.length)];
-    el.stageSub.textContent = `${actor.bot.name} şu an ${actor.node.dataset.task}.`;
-  }, 1800);
+    el.stageSub.textContent = `${actor.bot.name} web sitede geziyor: ${actor.node.dataset.task}`;
+  }, 1300);
 }
 
 el.refresh.addEventListener('click', () => {
