@@ -3,10 +3,7 @@ const LIVE_API = localStorage.getItem('MURATTIY_API') || 'https://murattiy-live-
 const bots = [
   { id: 'b1', name: 'Research Bot', desc: 'Web kaynaklarını tarar ve özet üretir.', status: 'running', progress: 72, task: 'ana sayfayı tarıyor' },
   { id: 'b2', name: 'Planner Bot', desc: 'Görev planı çıkarır ve sıraya alır.', status: 'idle', progress: 35, task: 'ayarları kontrol ediyor' },
-  { id: 'b3', name: 'Monitor Bot', desc: 'Sistem durumunu anlık takip eder.', status: 'running', progress: 88, task: 'log analizi yapıyor' },
-  { id: 'b4', name: 'Publisher Bot', desc: 'İçerikleri yayına hazırlar.', status: 'error', progress: 20, task: 'hata düzeltiyor' },
-  { id: 'b5', name: 'Memory Bot', desc: 'Önemli notları indeksler.', status: 'running', progress: 61, task: 'veri topluyor' },
-  { id: 'b6', name: 'Notify Bot', desc: 'Bildirimleri ve uyarıları yönetir.', status: 'idle', progress: 43, task: 'rapor sayfasına geçti' }
+  { id: 'b3', name: 'Monitor Bot', desc: 'Sistem durumunu anlık takip eder.', status: 'running', progress: 88, task: 'log analizi yapıyor' }
 ];
 
 const statusMap = {
@@ -15,19 +12,7 @@ const statusMap = {
   error: { text: 'ERROR', cls: 'error' }
 };
 
-const taskPool = [
-  'ana sayfayı tarıyor', 'ürünleri geziyor', 'rapor sayfasına geçti',
-  'ayarları kontrol ediyor', 'veri topluyor', 'log analizi yapıyor', 'hata düzeltiyor'
-];
-
-const mapNodes = [
-  { name: 'Ana Sayfa', x: 14, y: 20 },
-  { name: 'Ürünler', x: 40, y: 36 },
-  { name: 'Raporlar', x: 68, y: 24 },
-  { name: 'Ayarlar', x: 84, y: 54 },
-  { name: 'Bildirim', x: 58, y: 74 },
-  { name: 'Profil', x: 24, y: 70 }
-];
+const demoTasks = ['ana sayfa', 'rapor', 'ayarlar', 'profil', 'ürünler', 'bildirim'];
 
 const el = {
   grid: document.getElementById('botGrid'),
@@ -38,10 +23,11 @@ const el = {
   idle: document.getElementById('idleKpi'),
   error: document.getElementById('errorKpi'),
   refresh: document.getElementById('refreshBtn'),
-  arena: document.getElementById('stageArena'),
-  stageSub: document.getElementById('stageSub'),
-  terminal: document.getElementById('terminalLog')
+  terminal: document.getElementById('terminalLog'),
+  roam: document.getElementById('roamLayer')
 };
+
+let roamActors = [];
 
 function cardTemplate(bot) {
   const st = statusMap[bot.status] || statusMap.idle;
@@ -51,8 +37,8 @@ function cardTemplate(bot) {
         <h4 class="bot-name">${bot.name}</h4>
         <span class="status-pill ${st.cls}"><span class="dot"></span>${st.text}</span>
       </div>
-      <p class="bot-desc">${bot.desc}</p>
-      <div class="progress"><div class="bar" style="width:${bot.progress}%"></div></div>
+      <p class="bot-desc">${bot.task || bot.desc || 'beklemede'}</p>
+      <div class="progress"><div class="bar" style="width:${bot.progress || 0}%"></div></div>
     </article>
   `;
 }
@@ -69,7 +55,9 @@ function render() {
   el.error.textContent = error;
 }
 
-function tickClock() { el.clock.textContent = new Date().toLocaleTimeString('tr-TR', { hour12: false }); }
+function tickClock() {
+  el.clock.textContent = new Date().toLocaleTimeString('tr-TR', { hour12: false });
+}
 
 function terminalPush(text) {
   if (!el.terminal) return;
@@ -81,130 +69,157 @@ function terminalPush(text) {
   el.terminal.scrollTop = el.terminal.scrollHeight;
 }
 
+function getAnchors() {
+  const selectors = ['.topbar', '.hero', '.terminal-chat', '.bots-section', '.footer'];
+  const anchors = [];
+
+  selectors.forEach(sel => {
+    const n = document.querySelector(sel);
+    if (!n) return;
+    const r = n.getBoundingClientRect();
+    anchors.push({
+      name: sel,
+      x: Math.max(24, Math.min(window.innerWidth - 24, r.left + r.width / 2)),
+      y: Math.max(24, Math.min(window.innerHeight - 24, r.top + r.height / 2))
+    });
+  });
+
+  for (let i = 0; i < 6; i++) {
+    anchors.push({
+      name: `rand-${i}`,
+      x: 40 + Math.random() * (window.innerWidth - 80),
+      y: 60 + Math.random() * (window.innerHeight - 120)
+    });
+  }
+  return anchors;
+}
+
+function pickTargetByTask(task, anchors) {
+  const t = (task || '').toLowerCase();
+  if (t.includes('rapor')) return anchors.find(a => a.name.includes('bots')) || anchors[0];
+  if (t.includes('ayar')) return anchors.find(a => a.name.includes('topbar')) || anchors[0];
+  if (t.includes('profil')) return anchors.find(a => a.name.includes('hero')) || anchors[0];
+  if (t.includes('bildirim')) return anchors.find(a => a.name.includes('terminal')) || anchors[0];
+  return anchors[Math.floor(Math.random() * anchors.length)];
+}
+
+function syncRoamBots() {
+  const existing = new Map(roamActors.map(a => [a.botId, a]));
+  const next = [];
+
+  for (let i = 0; i < bots.length; i++) {
+    const b = bots[i];
+    let actor = existing.get(b.id);
+    if (!actor) {
+      const n = document.createElement('div');
+      n.className = `roam-bot ${b.status || 'idle'}`;
+      n.textContent = String(i + 1);
+      n.dataset.task = b.task || 'beklemede';
+      el.roam.appendChild(n);
+
+      actor = {
+        botId: b.id,
+        node: n,
+        x: 50 + Math.random() * (window.innerWidth - 100),
+        y: 80 + Math.random() * (window.innerHeight - 160),
+        tx: 0,
+        ty: 0,
+        task: b.task || 'beklemede',
+        status: b.status || 'idle',
+        speed: 0.03
+      };
+    }
+
+    actor.task = b.task || 'beklemede';
+    actor.status = b.status || 'idle';
+    actor.node.className = `roam-bot ${actor.status}`;
+    actor.node.dataset.task = actor.task;
+    next.push(actor);
+  }
+
+  roamActors.forEach(a => {
+    if (!next.find(n => n.botId === a.botId)) a.node.remove();
+  });
+
+  roamActors = next;
+  assignNewTargets();
+}
+
+function assignNewTargets() {
+  const anchors = getAnchors();
+  roamActors.forEach(a => {
+    const pick = pickTargetByTask(a.task, anchors);
+    a.tx = pick.x;
+    a.ty = pick.y;
+    a.speed = a.status === 'running' ? 0.06 : a.status === 'error' ? 0.03 : 0.04;
+  });
+}
+
+function roamFrame() {
+  roamActors.forEach(a => {
+    a.x += (a.tx - a.x) * a.speed;
+    a.y += (a.ty - a.y) * a.speed;
+
+    if (Math.abs(a.tx - a.x) < 8 && Math.abs(a.ty - a.y) < 8) {
+      const anchors = getAnchors();
+      const pick = pickTargetByTask(a.task, anchors);
+      a.tx = pick.x;
+      a.ty = pick.y;
+    }
+
+    a.node.style.left = `${a.x}px`;
+    a.node.style.top = `${a.y}px`;
+  });
+
+  requestAnimationFrame(roamFrame);
+}
+
 function applyLiveState(payload) {
   if (!payload?.bots || !Array.isArray(payload.bots)) return;
-  bots.splice(0, bots.length, ...payload.bots.map((b, i) => ({
+  bots.splice(0, bots.length, ...payload.bots.slice(0, 10).map((b, i) => ({
     id: b.id || `bot-${i}`,
     name: b.name || `Bot ${i + 1}`,
     desc: b.task || 'canlı görev',
+    task: b.task || 'canlı görev',
     status: ['running', 'idle', 'error'].includes(b.status) ? b.status : 'idle',
-    progress: Number.isFinite(Number(b.progress)) ? Number(b.progress) : 0,
-    task: b.task || 'çalışıyor'
+    progress: Number.isFinite(Number(b.progress)) ? Number(b.progress) : 0
   })));
+
   render();
-  terminalPush(`live update alındı (${new Date().toLocaleTimeString('tr-TR')})`);
+  syncRoamBots();
 }
 
-function animateData() {
-  for (const b of bots) {
-    if (b.status === 'running') b.progress = Math.min(100, b.progress + Math.floor(Math.random() * 8));
-    if (b.status === 'idle') b.progress = Math.max(5, b.progress - Math.floor(Math.random() * 3));
-    if (b.status === 'error') b.progress = Math.max(0, b.progress - Math.floor(Math.random() * 2));
-    if (b.progress >= 100 && b.status === 'running') { b.status = 'idle'; b.progress = 45; }
-  }
-  if (Math.random() > 0.82) {
-    const r = bots[Math.floor(Math.random() * bots.length)];
-    r.status = ['running', 'idle', 'error'][Math.floor(Math.random() * 3)];
-    r.task = taskPool[Math.floor(Math.random() * taskPool.length)];
-  }
-  render();
-}
-
-function toPixel(arena, point) { return { x: (point.x / 100) * arena.clientWidth, y: (point.y / 100) * arena.clientHeight }; }
-
-function setupMapNodes() {
-  mapNodes.forEach((p) => {
-    const n = document.createElement('div');
-    n.className = 'map-node';
-    n.style.left = `${p.x}%`;
-    n.style.top = `${p.y}%`;
-    n.textContent = p.name;
-    el.arena.appendChild(n);
-  });
-}
-
-function setupMiniBots() {
-  setupMapNodes();
-  const mini = bots.map((b, i) => {
-    const nodeEl = document.createElement('div');
-    nodeEl.className = 'mini-bot';
-    nodeEl.textContent = i + 1;
-    nodeEl.dataset.task = b.task || taskPool[Math.floor(Math.random() * taskPool.length)];
-    el.arena.appendChild(nodeEl);
-    const from = mapNodes[i % mapNodes.length];
-    const to = mapNodes[(i + 2) % mapNodes.length];
-    const start = toPixel(el.arena, from);
-    const end = toPixel(el.arena, to);
-    return { bot: b, node: nodeEl, from, to, x: start.x, y: start.y, tx: end.x, ty: end.y, speed: 0.014 + Math.random() * 0.01, progress: Math.random() * 0.6, pathTick: 0 };
-  });
-
-  function pickNextTarget(m) {
-    let next = mapNodes[Math.floor(Math.random() * mapNodes.length)];
-    while (next === m.to) next = mapNodes[Math.floor(Math.random() * mapNodes.length)];
-    m.from = m.to; m.to = next;
-    const fromPx = toPixel(el.arena, m.from);
-    const toPx = toPixel(el.arena, m.to);
-    m.x = fromPx.x; m.y = fromPx.y; m.tx = toPx.x; m.ty = toPx.y; m.progress = 0;
-    m.node.dataset.task = `${next.name} → ${(m.bot.task || taskPool[Math.floor(Math.random() * taskPool.length)])}`;
-    m.node.classList.add('hop'); setTimeout(() => m.node.classList.remove('hop'), 320);
-  }
-
-  function frame() {
-    for (const m of mini) {
-      m.progress += m.speed;
-      if (m.progress >= 1) pickNextTarget(m);
-      m.x = m.x + (m.tx - m.x) * 0.045;
-      m.y = m.y + (m.ty - m.y) * 0.045;
-      m.pathTick++;
-      if (m.pathTick > 200) { m.pathTick = 0; m.node.dataset.task = `${m.to.name} → ${(m.bot.task || taskPool[Math.floor(Math.random() * taskPool.length)])}`; }
-      m.node.style.left = `${m.x}px`;
-      m.node.style.top = `${m.y}px`;
-    }
-    requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
-
-  setInterval(() => {
-    const actor = mini[Math.floor(Math.random() * mini.length)];
-    el.stageSub.textContent = `${actor.bot.name} web sitede geziyor: ${actor.node.dataset.task}`;
-  }, 1300);
-}
-
-async function startLiveMode() {
+async function pollLive() {
   try {
-    terminalPush(`live api bağlanıyor: ${LIVE_API}`);
-    const r = await fetch(`${LIVE_API}/state`, { cache: 'no-store' });
+    const r = await fetch(`${LIVE_API}/state?t=${Date.now()}`, { cache: 'no-store' });
+    if (!r.ok) throw new Error('state not ok');
     const s = await r.json();
     applyLiveState(s);
-
-    const es = new EventSource(`${LIVE_API}/events`);
-    es.addEventListener('snapshot', (e) => applyLiveState(JSON.parse(e.data)));
-    es.addEventListener('update', (e) => applyLiveState(JSON.parse(e.data)));
-    es.addEventListener('error', () => terminalPush('live bağlantıda kesinti')); 
+    terminalPush(`live state alındı (${bots.length} bot)`);
   } catch {
-    terminalPush('live api erişilemedi, demo moda geçildi');
-    startDemoMode();
+    terminalPush('live api erişilemedi, demo akış');
+    bots.forEach(b => {
+      b.task = demoTasks[Math.floor(Math.random() * demoTasks.length)] + ' geziyor';
+      if (b.status === 'running') b.progress = Math.min(100, b.progress + 4);
+    });
+    render();
+    syncRoamBots();
   }
-}
-
-function startDemoMode() {
-  terminalPush('demo chat servisi başlatıldı');
-  setInterval(() => {
-    const b = bots[Math.floor(Math.random() * bots.length)];
-    terminalPush(`${b.name}: ${statusMap[b.status].text} | ${Math.round(b.progress)}% | ${b.task || taskPool[Math.floor(Math.random() * taskPool.length)]}`);
-  }, 1600);
-  setInterval(animateData, 3500);
 }
 
 el.refresh.addEventListener('click', () => {
-  animateData();
-  terminalPush('manuel yenileme tetiklendi');
+  pollLive();
   el.refresh.textContent = 'Yenilendi ✓';
   setTimeout(() => (el.refresh.textContent = 'Yenile'), 1200);
 });
 
+window.addEventListener('resize', assignNewTargets);
+
 render();
-setupMiniBots();
+syncRoamBots();
+roamFrame();
 tickClock();
 setInterval(tickClock, 1000);
-if (LIVE_API) startLiveMode(); else startDemoMode();
+terminalPush(`live api: ${LIVE_API}`);
+pollLive();
+setInterval(pollLive, 5000);
