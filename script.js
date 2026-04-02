@@ -123,6 +123,9 @@ function syncRoamBots() {
       n.className = `roam-bot ${b.status || 'idle'}`;
       n.textContent = '';
       n.dataset.task = b.task || 'beklemede';
+      const mouth = document.createElement('span');
+      mouth.className = 'mouth';
+      n.appendChild(mouth);
       el.roam.appendChild(n);
 
       actor = {
