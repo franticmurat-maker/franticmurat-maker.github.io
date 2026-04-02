@@ -12,6 +12,7 @@
   --ok: #25b46b;
   --warn: #ffb020;
   --err: #e5484d;
+  --chunk-font: "Chunk", "ChunkFive", "Alfa Slab One", "Rockwell Extra Bold", serif;
 }
 
 * { box-sizing: border-box; }
@@ -72,7 +73,7 @@ body {
 }
 
 .brand-wrap { display: flex; align-items: center; gap: 10px; }
-.brand-wrap h1 { margin: 0; text-transform: lowercase; letter-spacing: .2px; font-size: 1.02rem; }
+.brand-wrap h1 { margin: 0; text-transform: lowercase; letter-spacing: .2px; font-size: 1.02rem; font-family: var(--chunk-font); }
 .brand-dot {
   width: 10px; height: 10px; border-radius: 999px;
   background: var(--ok);
@@ -120,6 +121,7 @@ body {
   margin: 0 0 10px;
   font-size: clamp(1.18rem, 2vw, 1.9rem);
   line-height: 1.25;
+  font-family: var(--chunk-font);
 }
 .sub { margin: 0; color: var(--muted); line-height: 1.58; }
 
@@ -136,7 +138,7 @@ body {
   background: linear-gradient(165deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
 }
 .kpi-title { color: var(--muted); font-size: .78rem; }
-.kpi-value { font-size: 1.42rem; font-weight: 800; }
+.kpi-value { font-size: 1.42rem; font-weight: 800; font-family: var(--chunk-font); }
 
 .terminal-chat { margin-top: 18px; padding: 14px; }
 .terminal-log {
@@ -161,7 +163,7 @@ body {
   align-items: center;
   margin-bottom: 10px;
 }
-.section-head h3 { margin: 0; font-size: 1.1rem; }
+.section-head h3 { margin: 0; font-size: 1.1rem; font-family: var(--chunk-font); }
 
 .roam-layer {
   position: fixed;
@@ -230,6 +232,7 @@ body {
   font-weight: 700;
   letter-spacing: .2px;
   cursor: pointer;
+  font-family: var(--chunk-font);
   background: linear-gradient(135deg, var(--brand), var(--brand-2));
   box-shadow: 0 6px 14px rgba(0,0,0,.16);
   transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
